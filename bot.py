@@ -195,7 +195,7 @@ import asyncio
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-PORT = int(os.getenv("PORT", 8080))
+PORT = int(os.getenv("PORT", 10000))
 
 
 class HealthHandler(BaseHTTPRequestHandler):
@@ -207,26 +207,22 @@ class HealthHandler(BaseHTTPRequestHandler):
         pass
 
 
-def run_health_server():
-    HTTPServer(("0.0.0.0", PORT), HealthHandler).serve_forever()
-
-
-async def main():
-    init_db()
-    threading.Thread(target=run_health_server, daemon=True).start()
-    print(f"🌐 Health server on port {PORT}")
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("🤖 Bot chal raha hai...")
-    async with app:
-        await app.initialize()
-        await app.start()
-        await app.updater.start_polling()
-        await asyncio.Event().wait()
-        await app.updater.stop()
-        await app.stop()
+def run_bot():
+    async def _run():
+        init_db()
+        app = Application.builder().token(TOKEN).build()
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        print("🤖 Bot chal raha hai...")
+        async with app:
+            await app.initialize()
+            await app.start()
+            await app.updater.start_polling()
+            await asyncio.Event().wait()
+    asyncio.run(_run())
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    threading.Thread(target=run_bot, daemon=True).start()
+    print(f"🌐 Health server on port {PORT}")
+    HTTPServer(("0.0.0.0", PORT), HealthHandler).serve_forever()
