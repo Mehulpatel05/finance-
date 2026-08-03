@@ -192,10 +192,29 @@ async def handle_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 import asyncio
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+PORT = int(os.getenv("PORT", 8080))
+
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running!")
+    def log_message(self, *args):
+        pass
+
+
+def run_health_server():
+    HTTPServer(("0.0.0.0", PORT), HealthHandler).serve_forever()
 
 
 async def main():
     init_db()
+    threading.Thread(target=run_health_server, daemon=True).start()
+    print(f"🌐 Health server on port {PORT}")
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
