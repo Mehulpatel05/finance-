@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: finance-telegram-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: WEBHOOK_URL
+        sync: false
+      - key: BUDGET
+        value: "10000"
