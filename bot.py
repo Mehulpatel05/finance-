@@ -193,9 +193,11 @@ async def handle_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 import asyncio
 import threading
+import urllib.request
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 PORT = int(os.getenv("PORT", 10000))
+RENDER_URL = os.getenv("RENDER_URL", "")
 
 
 class HealthHandler(BaseHTTPRequestHandler):
@@ -205,6 +207,18 @@ class HealthHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"Bot is running!")
     def log_message(self, *args):
         pass
+
+
+def self_ping():
+    while True:
+        import time
+        time.sleep(600)  # har 10 min
+        try:
+            if RENDER_URL:
+                urllib.request.urlopen(RENDER_URL, timeout=10)
+                print("✅ Self-ping successful")
+        except Exception:
+            pass
 
 
 def run_bot():
@@ -224,5 +238,6 @@ def run_bot():
 
 if __name__ == "__main__":
     threading.Thread(target=run_bot, daemon=True).start()
+    threading.Thread(target=self_ping, daemon=True).start()
     print(f"🌐 Health server on port {PORT}")
     HTTPServer(("0.0.0.0", PORT), HealthHandler).serve_forever()
