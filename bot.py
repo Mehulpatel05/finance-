@@ -217,7 +217,7 @@ def run_bot():
         async with app:
             await app.initialize()
             await app.start()
-            await app.updater.start_polling()
+            await app.updater.start_polling(drop_pending_updates=True)
             await asyncio.Event().wait()
     asyncio.run(_run())
 
